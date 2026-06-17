@@ -1,0 +1,28 @@
+# CORE
+
+torch>=2.2.0
+torchvision>=0.17.0
+numpy>=1.26.0
+pandas>=2.2.0
+Pillow>=10.0.0
+opencv-python>=4.9.0
+
+# MODEL
+
+segmentation-models-pytorch>=0.3.3
+
+# AUGMENTATION
+
+albumentations>=1.4.0
+
+# UTILITIES
+
+scipy>=1.13.0
+scikit-learn>=1.4.0
+tqdm>=4.66.0
+matplotlib>=3.8.0
+pyyaml>=6.0.1
+torchinfo>=1.8.0
+
+# EXPERIMENT TRACKING
+wandb>=0.17.0
