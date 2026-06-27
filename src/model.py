@@ -37,6 +37,6 @@ class SolarUNet(nn.Module):
     
     def forward(self, x, meta):
         features = self.base.encoder(x)
-        decoder_out = self.base.decoder(*features)      # (B, 16, H, W)
+        decoder_out = self.base.decoder(features)       # (B, 16, H, W)
         conditioned = self.film(decoder_out, meta)
         return self.base.segmentation_head(conditioned) # (B, 1, H, W)

@@ -1,5 +1,5 @@
 data:
-  metadata_csv: data/metadata.csv
+  metadata_csv: data/metadata_augmented.csv
   image_dir: data/roofs/
   mask_dir: data/masks/
   img_size: [512, 512]
@@ -8,7 +8,7 @@ data:
 
 model:
   # backbone: resnet34 | efficientnet-b3 | mit-b2
-  encoder: resnet34   
+  encoder: efficientnet-b3
   encoder_weights: imagenet
   # auto-set by dataset, override if needed
   meta_dim: 8
@@ -17,13 +17,13 @@ model:
 training:
   epochs: 100
   batch_size: 8
-  lr: 0.0003
+  lr: 0.0001
   lr_schedular: cosine # cosine | step | plateau
   weight_decay: 0.0001
-  dice_weight: 0.5
-  count_loss_weight: 0.3
+  dice_weight: 0.7
+  count_loss_weight: 0.15
   setback_loss_weight: 0.1
-  early_stopping_patience: 15
+  early_stopping_patience: 20
   checkpoint_dir: checkpoint/
 
 inference:

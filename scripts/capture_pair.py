@@ -102,6 +102,9 @@ def main():
                         help="Seconds to wait after Ctrl+A+Del for panels to disappear (default 2)")
     parser.add_argument("--reset-region", action="store_true",
                         help="Ignore saved region and select a new one")
+    parser.add_argument("--dark-roof",    action="store_true",
+                        help="Preset for dark roofs: enables CLAHE, max-channel diff, "
+                             "threshold 15, min-area 800. Overrides those flags individually.")
     parser.add_argument("--threshold",    type=int, default=25)
     parser.add_argument("--min-area",     type=int, default=1000)
     parser.add_argument("--enhance",      action="store_true",
@@ -109,6 +112,12 @@ def main():
     parser.add_argument("--diff-mode",    choices=["gray", "max-channel"], default="gray")
     parser.add_argument("--no-preview",   action="store_true")
     args = parser.parse_args()
+
+    if args.dark_roof:
+        args.enhance    = True
+        args.diff_mode  = "max-channel"
+        args.threshold  = 15
+        args.min_area   = 800
 
     os.makedirs("data/raw", exist_ok=True)
 

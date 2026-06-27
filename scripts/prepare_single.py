@@ -63,7 +63,11 @@ def extract_mask(clean_path, layout_path, threshold=25, min_area=1000,
     kept = 0
     for contour in contours:
         if cv2.contourArea(contour) >= min_area:
-            cv2.drawContours(filtered, [contour], -1, 255, thickness=cv2.FILLED)
+            # Fit a minimum-area rectangle so the mask teaches the model
+            # to predict clean rectangular regions, not amorphous blobs
+            rect = cv2.minAreaRect(contour)
+            box  = cv2.boxPoints(rect).astype(np.int32)
+            cv2.drawContours(filtered, [box], 0, 255, thickness=cv2.FILLED)
             kept += 1
     print(f"  Contours found: {len(contours)}  |  kept after area filter: {kept}")
 

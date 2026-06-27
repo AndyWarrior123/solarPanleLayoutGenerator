@@ -16,7 +16,7 @@ def encode_meta(row: pd.Series) -> torch.Tensor:
         vec[ROOF_TYPES.index(row["roof_type"])] = 1.0
     if row["connection_type"] in CONNECTION_TYPES:
         vec[3 + CONNECTION_TYPES.index(row["connection_type"])] = 1.0
-    vec[5] = float(row["num_panels"]) / 30.0
+    vec[5] = float(row["num_panels"]) / 70.0
     vec[6] = float(row["angle"]) / 90
     vec[7] = float(row["num_strings"]) / 10.0
     return vec
@@ -28,7 +28,14 @@ def get_transforms(img_size, train=True):
             A.RandomRotate90(),
             A.HorizontalFlip(),
             A.VerticalFlip(),
-            A.RandomBrightnessContrast(p=0.3),
+            A.Affine(translate_percent=0.05, scale=(0.9, 1.1), rotate=(-15, 15), p=0.5),
+            A.RandomBrightnessContrast(p=0.4),
+            A.HueSaturationValue(hue_shift_limit=10, sat_shift_limit=20, val_shift_limit=10, p=0.3),
+            A.GaussNoise(p=0.2),
+            A.CoarseDropout(num_holes_range=(1, 4), hole_height_range=(16, 32), hole_width_range=(16, 32), p=0.2),
+            A.ElasticTransform(alpha=30, sigma=5, p=0.2),
+            A.GridDistortion(num_steps=5, distort_limit=0.2, p=0.2),
+            A.RandomShadow(p=0.2),
             A.Resize(h, w),
             A.Normalize(),
             ToTensorV2(),
@@ -64,7 +71,7 @@ class SolarDataset(Dataset):
         return image_t, mask_t, encode_meta(row)
 
 def make_datasets(cfg):
-    meta = pd.read_csv(cfg.metadata_csv).sample(frac=1, random_state=42)
+    meta = pd.read_csv(cfg.data.metadata_csv).sample(frac=1, random_state=42)
     n_val = max(1, int(len(meta) * cfg.data.val_split))
     train_ds = SolarDataset(meta.iloc[n_val:], cfg.data.image_dir, cfg.data.mask_dir, 
                             cfg.data.img_size, train=True)
