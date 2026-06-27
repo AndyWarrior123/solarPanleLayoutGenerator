@@ -96,9 +96,9 @@ def capture_region(region: dict):
 def main():
     parser = argparse.ArgumentParser(description="Capture a Pylon screenshot pair and build the mask.")
     parser.add_argument("--id",           required=True,  help="House ID e.g. house_006")
-    parser.add_argument("--delay",        type=int, default=6,
+    parser.add_argument("--delay",        type=int, default=4,
                         help="Seconds to switch to browser before each capture (default 4)")
-    parser.add_argument("--delete-pause", type=int, default=6,
+    parser.add_argument("--delete-pause", type=int, default=4,
                         help="Seconds to wait after Ctrl+A+Del for panels to disappear (default 2)")
     parser.add_argument("--reset-region", action="store_true",
                         help="Ignore saved region and select a new one")
