@@ -28,7 +28,7 @@ class SolarUNet(nn.Module):
             encoder_name=cfg.model.encoder,
             encoder_weights=cfg.model.encoder_weights,
             in_channels=3,
-            classes=1,
+            classes=cfg.model.out_channels,
             activation=None,
         )
         self.film = FiLMGenerator(cfg.model.meta_dim,

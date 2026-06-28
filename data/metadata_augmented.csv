@@ -77,6 +77,7 @@ house_075_roof.jpg,house_075_mask.png,24,tile,22,3,single_phase
 house_076_roof.jpg,house_076_mask.png,30,tin,22,3,single_phase
 house_077_roof.jpg,house_077_mask.png,14,tile,22,2,single_phase
 house_078_roof.jpg,house_078_mask.png,28,tin,20,3,single_phase
+house_079_roof.jpg,house_079_mask.png,16,flat,20,1,three_phase
 house_001_roof__aug0_roof.jpg,house_001_mask__aug0_mask.png,13,tile,22,1,single_phase
 house_001_roof__aug1_roof.jpg,house_001_mask__aug1_mask.png,13,tile,22,1,single_phase
 house_001_roof__aug2_roof.jpg,house_001_mask__aug2_mask.png,13,tile,22,1,single_phase
@@ -311,3 +312,6 @@ house_077_roof__aug2_roof.jpg,house_077_mask__aug2_mask.png,14,tile,22,2,single_
 house_078_roof__aug0_roof.jpg,house_078_mask__aug0_mask.png,28,tin,20,3,single_phase
 house_078_roof__aug1_roof.jpg,house_078_mask__aug1_mask.png,28,tin,20,3,single_phase
 house_078_roof__aug2_roof.jpg,house_078_mask__aug2_mask.png,28,tin,20,3,single_phase
+house_079_roof__aug0_roof.jpg,house_079_mask__aug0_mask.png,16,flat,20,1,three_phase
+house_079_roof__aug1_roof.jpg,house_079_mask__aug1_mask.png,16,flat,20,1,three_phase
+house_079_roof__aug2_roof.jpg,house_079_mask__aug2_mask.png,16,flat,20,1,three_phase

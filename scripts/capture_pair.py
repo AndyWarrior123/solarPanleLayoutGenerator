@@ -102,14 +102,29 @@ def main():
                         help="Seconds to wait after Ctrl+A+Del for panels to disappear (default 2)")
     parser.add_argument("--reset-region", action="store_true",
                         help="Ignore saved region and select a new one")
+    # Mode
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--diff", action="store_true",
+                      help="Use legacy binary diff-based mask instead of RGB panel cut")
+
+    # Panel detection
+    parser.add_argument("--panel-template",  default=None,
+                        help="Path to a panel reference image for template-matching detection "
+                             "(recommended for layout-cut mode)")
+    parser.add_argument("--match-thresh",    type=float, default=0.55)
+    parser.add_argument("--nms-iou",         type=float, default=0.3)
+    parser.add_argument("--cell-min-area",   type=int, default=300)
+    parser.add_argument("--cell-color-tol",  type=int, default=35)
+
+    # Dark-roof preset (still useful for diff mode)
     parser.add_argument("--dark-roof",    action="store_true",
                         help="Preset for dark roofs: enables CLAHE, max-channel diff, "
-                             "threshold 15, min-area 800. Overrides those flags individually.")
+                             "threshold 15, min-area 800.")
     parser.add_argument("--threshold",    type=int, default=25)
     parser.add_argument("--min-area",     type=int, default=1000)
-    parser.add_argument("--enhance",      action="store_true",
-                        help="Apply CLAHE contrast boost before diffing (helps dark roofs)")
+    parser.add_argument("--enhance",      action="store_true")
     parser.add_argument("--diff-mode",    choices=["gray", "max-channel"], default="gray")
+    parser.add_argument("--cell-masks",   action="store_true")
     parser.add_argument("--no-preview",   action="store_true")
     args = parser.parse_args()
 
@@ -165,16 +180,26 @@ def main():
     print(f"      Saved: {roof_path}")
 
     # ── 5. run mask extraction ───────────────────────────────────────────
-    print("\n[4/4] Running mask extraction...")
+    print("\n[4/4] Running panel extraction...")
     cmd = [
         sys.executable, "scripts/prepare_single.py",
-        "--roof",      roof_path,
-        "--layout",    layout_path,
-        "--id",        args.id,
-        "--threshold", str(args.threshold),
-        "--min-area",  str(args.min_area),
-        "--diff-mode", args.diff_mode,
+        "--roof",   roof_path,
+        "--layout", layout_path,
+        "--id",     args.id,
+        "--cell-min-area",  str(args.cell_min_area),
+        "--cell-color-tol", str(args.cell_color_tol),
     ]
+    if args.diff:
+        cmd += ["--diff",
+                "--threshold", str(args.threshold),
+                "--min-area",  str(args.min_area),
+                "--diff-mode", args.diff_mode]
+        if args.cell_masks:
+            cmd.append("--cell-masks")
+    if args.panel_template:
+        cmd += ["--panel-template", args.panel_template,
+                "--match-thresh",   str(args.match_thresh),
+                "--nms-iou",        str(args.nms_iou)]
     if args.enhance:
         cmd.append("--enhance")
     if args.no_preview:

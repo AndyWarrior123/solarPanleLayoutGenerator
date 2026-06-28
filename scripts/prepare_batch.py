@@ -5,9 +5,11 @@ A "pair" is a file matching *_roof.{jpg,png} that has a corresponding
 *_layout.{jpg,png} in the same directory. Any pair whose mask already
 exists in data/masks/ is skipped.
 
-Usage:
-    python scripts/prepare_batch.py
-    python scripts/prepare_batch.py --threshold 30 --min-area 800 --no-preview
+Usage (new default — RGB panel-cut mode):
+    python scripts/prepare_batch.py --panel-template data/panel_template.jpg
+
+Legacy binary-mask mode:
+    python scripts/prepare_batch.py --diff --no-preview
 """
 
 import argparse
@@ -59,17 +61,36 @@ def find_pairs(skip_existing: bool = True) -> list[tuple[str, str, str]]:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Batch mask extraction for all unprocessed pairs.")
-    parser.add_argument("--threshold",     type=int, default=25)
-    parser.add_argument("--min-area",      type=int, default=1000)
-    parser.add_argument("--crop",          type=int, nargs=4, default=[0, 0, 0, 0],
+    parser = argparse.ArgumentParser(description="Batch panel-cut / mask extraction for all unprocessed pairs.")
+
+    # Mode
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--diff",       action="store_true",
+                      help="Legacy: binary diff-based mask instead of RGB panel cut")
+
+    # Panel detection
+    parser.add_argument("--panel-template",  default=None,
+                        help="Path to a single panel reference image for template-matching detection "
+                             "(recommended — used in layout-cut mode and diff/cell-masks mode)")
+    parser.add_argument("--match-thresh",    type=float, default=0.55)
+    parser.add_argument("--nms-iou",         type=float, default=0.3)
+    parser.add_argument("--cell-min-area",   type=int,   default=300)
+    parser.add_argument("--cell-color-tol",  type=int,   default=35)
+
+    # Shared
+    parser.add_argument("--crop",     type=int, nargs=4, default=[0, 0, 0, 0],
                         metavar=("TOP", "RIGHT", "BOTTOM", "LEFT"))
-    parser.add_argument("--enhance",       action="store_true",
-                        help="Apply CLAHE contrast boost before diffing (helps dark roofs)")
-    parser.add_argument("--diff-mode",     choices=["gray", "max-channel"], default="gray")
+    parser.add_argument("--enhance",  action="store_true")
     parser.add_argument("--no-preview",    action="store_true")
     parser.add_argument("--reprocess-all", action="store_true",
                         help="Re-run even for houses that already have a mask")
+
+    # Legacy diff options
+    parser.add_argument("--threshold",     type=int, default=25)
+    parser.add_argument("--min-area",      type=int, default=1000)
+    parser.add_argument("--diff-mode",     choices=["gray", "max-channel"], default="gray")
+    parser.add_argument("--cell-masks",    action="store_true")
+
     args = parser.parse_args()
 
     if not os.path.isdir(RAW_DIR):
@@ -89,14 +110,28 @@ def main():
 
         cmd = [
             sys.executable, "scripts/prepare_single.py",
-            "--roof",      roof_path,
-            "--layout",    layout_path,
-            "--id",        house_id,
-            "--threshold", str(args.threshold),
-            "--min-area",  str(args.min_area),
-            "--crop",      *[str(v) for v in args.crop],
-            "--diff-mode", args.diff_mode,
+            "--roof",    roof_path,
+            "--layout",  layout_path,
+            "--id",      house_id,
+            "--crop",    *[str(v) for v in args.crop],
+            "--cell-min-area",  str(args.cell_min_area),
+            "--cell-color-tol", str(args.cell_color_tol),
         ]
+
+        if args.diff:
+            cmd += [
+                "--diff",
+                "--threshold", str(args.threshold),
+                "--min-area",  str(args.min_area),
+                "--diff-mode", args.diff_mode,
+            ]
+            if args.cell_masks:
+                cmd.append("--cell-masks")
+
+        if args.panel_template:
+            cmd += ["--panel-template", args.panel_template,
+                    "--match-thresh",   str(args.match_thresh),
+                    "--nms-iou",        str(args.nms_iou)]
         if args.enhance:
             cmd.append("--enhance")
         if args.no_preview:

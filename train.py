@@ -1,12 +1,12 @@
 import time
 import torch
-from torch.amp import GradScaler, autocast
+from torch.amp.grad_scaler import GradScaler, autocast
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from src.dataset import make_datasets
 from src.model   import SolarUNet
-from src.loss    import CombinedLoss
+from src.loss    import RGBPanelLoss
 from src.utils   import load_config, EarlyStopping, save_checkpoint
 
 
@@ -40,7 +40,7 @@ def main():
     # ── 3. Model, loss, optimiser ─────────────────────────────────────────────
     print("\n[3/5] Building model...")
     model     = SolarUNet(cfg).to(device)
-    criterion = CombinedLoss(cfg)
+    criterion = RGBPanelLoss()
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=cfg.training.lr,
@@ -70,11 +70,11 @@ def main():
         train_loss = 0.0
         loop = tqdm(train_loader, desc=f"Epoch {epoch:03d}/{cfg.training.epochs} [train]",
                     leave=False, ncols=72)
-        for images, masks, meta in loop:
-            images, masks, meta = images.to(device), masks.to(device), meta.to(device)
+        for images, targets, meta in loop:
+            images, targets, meta = images.to(device), targets.to(device), meta.to(device)
             optimizer.zero_grad()
             with autocast(device_type=device.type, enabled=device.type == "cuda"):
-                loss = criterion(model(images, meta), masks, meta)
+                loss = criterion(model(images, meta), targets)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
@@ -87,11 +87,11 @@ def main():
         model.eval()
         val_loss = 0.0
         with torch.no_grad():
-            for images, masks, meta in tqdm(val_loader,
+            for images, targets, meta in tqdm(val_loader,
                                             desc=f"Epoch {epoch:03d}/{cfg.training.epochs} [val]  ",
                                             leave=False, ncols=72):
-                images, masks, meta = images.to(device), masks.to(device), meta.to(device)
-                val_loss += criterion(model(images, meta), masks, meta).item()
+                images, targets, meta = images.to(device), targets.to(device), meta.to(device)
+                val_loss += criterion(model(images, meta), targets).item()
 
         train_loss /= len(train_loader)
         val_loss   /= len(val_loader)

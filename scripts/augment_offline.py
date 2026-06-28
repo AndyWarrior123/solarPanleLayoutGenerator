@@ -67,7 +67,7 @@ def load_pair(row: pd.Series, roof_dir: str, mask_dir: str):
     mask_path = os.path.join(mask_dir, row["mask_filename"])
 
     img  = cv2.imread(img_path)
-    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    mask = cv2.imread(mask_path)  # 3-channel BGR — RGB panel cut
 
     if img is None:
         raise FileNotFoundError(f"Cannot open image: {img_path}")
